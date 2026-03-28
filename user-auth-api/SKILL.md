@@ -1,5 +1,6 @@
 ---
 id: user-auth-api
+slug: user-auth-api
 name: 用户身份认证 API
 description: 供 OpenClaw 调用，用于通过用户名和密码获取 HDL 系统的身份令牌 (AccessToken)。该 Token 是调用其他业务接口（如产品查询）的前提。
 version: 1.1.0

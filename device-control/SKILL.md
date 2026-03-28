@@ -1,5 +1,6 @@
 ---
 id: device-control
+slug: device-control
 name: 设备控制技能
 description: 支持查询智能设备列表及其状态，并进行实时精确控制。已优化为企业级响应，确保毫秒级定位和极速 AI 闭环。
 version: 1.2.0

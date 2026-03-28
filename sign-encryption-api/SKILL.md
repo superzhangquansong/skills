@@ -1,5 +1,6 @@
 ---
 id: sign-encryption-api
+slug: sign-encryption-api
 name: 接口安全签名算法 (Sign Encryption)
 description: 供 OpenClaw 调用，描述了 HDL 系统通用的 API 安全签名 (Sign) 生成算法。该算法确保了请求的完整性和安全性，是所有业务接口调用的核心前置步骤。
 version: 1.0.0

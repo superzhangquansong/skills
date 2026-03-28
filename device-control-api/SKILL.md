@@ -1,5 +1,6 @@
 ---
 id: device-control-api
+slug: device-control-api
 name: 智能家居设备查询与控制 API
 description: 供 OpenClaw 调用，用于获取用户家庭中的设备列表及其状态，并执行开关、调光、温度调节等控制操作。
 version: 1.1.1

@@ -1,5 +1,6 @@
 ---
 id: api-spec
+slug: api-spec
 name: API 规范技能
 description: 专门负责企业级 RESTful API 设计、审核及一致性验证，确保所有后端接口符合标准化、安全及高性能要求。
 version: 1.0.0

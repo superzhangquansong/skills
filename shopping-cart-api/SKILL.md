@@ -1,5 +1,6 @@
 ---
 id: shopping-cart-api
+slug: shopping-cart-api
 name: 购物车 API
 description: 供 OpenClaw 调用，用于将产品添加到购物车。支持配置 SKU 数量、产品扩展规格、配件详情及关联项目信息。
 version: 1.1.0

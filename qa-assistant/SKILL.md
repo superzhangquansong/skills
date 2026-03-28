@@ -1,5 +1,6 @@
 ---
 id: qa-assistant
+slug: qa-assistant
 name: QA百问百答技能
 description: 支持查询预设的QA问答对，并支持将答案推送至前端。
 version: 1.0.0

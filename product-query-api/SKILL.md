@@ -1,5 +1,6 @@
 ---
 id: product-query-api
+slug: product-query-api
 name: 渠道商优选商城产品查询 API
 description: 供 OpenClaw 调用，用于分页检索 HDL 渠道商优选商城的商品信息。支持按名称、品牌、型号、协议、ERP 编码等多维度筛选，并提供极致详细的 SKU 及递归配件信息。
 version: 1.3.0

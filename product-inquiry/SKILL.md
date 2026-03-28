@@ -1,5 +1,6 @@
 ---
 id: product-inquiry
+slug: product-inquiry
 name: 产品查询技能
 description: 支持获取产品信息、产品 SKU 品号等详细数据。
 version: 1.1.0
