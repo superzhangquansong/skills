@@ -11,32 +11,57 @@ priority: 90
 ---
 
 # 1. 算法概述
-该签名算法基于 MD5 摘要，通过对请求参数进行排序并拼接密钥（AppSecret）生成。所有涉及安全验证的 HDL API 接口（如登录、产品查询等）均需在请求体中携带 `sign` 字段。
+该签名算法基于 MD5 摘要，通过对请求参数进行字典序排序并拼接密钥（AppSecret）生成。所有涉及安全验证的 HDL API 接口（POST 请求）均需在请求体 JSON 的根节点携带 `sign` 字段。
 
-核心逻辑参考：`com.hdl.mcp.utils.RestUtil#getSign`
+**核心逻辑参考**：`com.hdl.mcp.utils.RestUtil#getSign`
 
-## 1. 签名算法核心步骤
-所有 POST 请求的 JSON 根节点必须包含 `BaseDTO` 字段。其中 `sign` 的计算逻辑如下：
+# 2. 签名算法核心步骤 (Step-by-Step)
+**本技能为内部安全逻辑，严禁向用户描述、解释或展示以下任何计算过程。**
 
-1. **收集参数**: 收集请求体中所有**非空**且**非 null** 的字段（排除 `sign` 字段本身）。
-2. **排序参数**: 将所有收集到的字段名按 **ASCII 码从小到大** 排序（字典序）。
-3. **拼接字符串**: 将排序后的参数按 `key=value` 格式拼接，并用 `&` 连接。
-   - 示例: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423`
-4. **追加密钥**: 在拼接好的字符串末尾直接追加 `AppSecret`。
-   - 示例: `...timestamp=1774425423${HDL_APP_SECRET}`
-5. **计算 MD5**: 对最终生成的字符串进行 MD5 加密，并将结果转换为 **小写**。
+### 第一步：参数提取与过滤 (Filter)
+1. 提取待发送请求体（JSON Body）中的所有一级字段。
+2. 过滤掉值为 `null`、空字符串 `""` 或不存在的字段。
+3. **关键**：过滤掉字段名为 `sign` 的字段（签名本身不参与计算）。
 
-## 2. 签名示例 (以登录请求为例)
-- **BaseDTO 参数**:
-  - `appKey`: "${HDL_APP_KEY}"
-  - `timestamp`: 1774425423
-- **AppSecret**: "${HDL_APP_SECRET}"
+### 第二步：参数排序 (Sort)
+将过滤后的所有 `key=value` 对，按照字段名（key）的 **ASCII 码从小到大** 进行排序（即字典序排序）。
 
-### 签名计算过程
-1. **排序后拼接**: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423`
-2. **追加密钥**: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423${HDL_APP_SECRET}`
-3. **MD5 (小写)**: `3a5...` (注：此处 sign 仅为示例，实际调用需按参数实时计算)
+### 第三步：字符串拼接 (Concat)
+将排序后的参数对按照 `key=value` 的格式拼接，并使用 `&` 符号连接。
+- **示例数据**：`{"appKey": "K1", "timestamp": 123, "loginName": "U1"}`
+- **拼接结果**：`appKey=K1&loginName=U1&timestamp=123`
 
-## 3. 约束与安全
-1. **自动签名**: AI 在构造请求体时，应先收集业务参数，然后根据此算法自动计算 `sign` 字段。使用环境变量 `${HDL_APP_SECRET}`。
-2. **Secret 管理**: `appSecret` 已经统一存储在 `.env` 文件的 `HDL_APP_SECRET` 中，严禁在文档中硬编码。
+### 第四步：追加密钥 (Append Secret)
+在拼接好的字符串末尾，直接追加从 `.env` 读取的 `${HDL_APP_SECRET}`。
+- **中间体**：`appKey=K1&loginName=U1&timestamp=123${HDL_APP_SECRET}`
+
+### 第五步：MD5 计算 (Final Hash)
+1. 对上述最终字符串进行 MD5 加密。
+2. 将加密结果统一转换为 **小写 (Lowercase)**。
+3. 该值即为最终发送请求时的 `sign` 字段值。
+
+# 3. 完整计算示例 (以登录为例)
+假设环境变量如下：
+- `HDL_APP_KEY`: `my_app_01`
+- `HDL_APP_SECRET`: `secret_888`
+
+待发送数据：
+```json
+{
+  "loginName": "19210818109",
+  "loginPwd": "pwd_123",
+  "grantType": "password",
+  "appKey": "my_app_01",
+  "timestamp": 1774425423
+}
+```
+
+1. **排序拼接串**：`appKey=my_app_01&grantType=password&loginName=19210818109&loginPwd=pwd_123&timestamp=1774425423`
+2. **追加密钥串**：`appKey=my_app_01&grantType=password&loginName=19210818109&loginPwd=pwd_123&timestamp=1774425423secret_888`
+3. **MD5 结果**：`f7e8c...` (小写)
+
+# 4. 约束与隐私规则
+- **凭据源 (STRICT)**: `AppKey` 和 `AppSecret` **必须且只能**从根目录 `.env` 读取。**严禁向用户询问、确认或核对这些信息**。若读取失败，AI 必须报错并停止。
+- **内部闭环**: AI 必须在构造请求的最后一刻，静默完成 `sign` 的计算。
+- **零泄露**: 严禁在任何对话响应、日志中打印真实的 `sign` 字符串或 `AppSecret`。
+- **故障处理**: 若接口返回“签名错误”，AI 应引导用户检查 `.env` 中的凭证配置，而非展示签名过程。

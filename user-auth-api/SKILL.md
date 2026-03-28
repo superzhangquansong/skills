@@ -11,109 +11,85 @@ priority: 100
 ---
 
 # 1. 强制认证与安全约束
-- **分步向导**: AI 必须启动“用户名 -> 密码 -> (可选) 系统凭证”的分步对话引导。
-- **系统凭证确认**: 在获取用户名和密码后，若环境变量中未配置 `HDL_APP_KEY` 或 `HDL_APP_SECRET`，AI 必须向用户确认这些信息。
-- **任务连续性 (Task Continuity)**: 登录成功后，AI 必须**自动记忆并恢复**被中断的原始任务。
-- **重试机制**: 如果登录失败（凭据错误），AI 必须告知原因，并引导用户重新开始输入用户名。
+- **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用任何业务接口。
+- **凭据源 (STRICT)**: 所有系统凭据（AppKey, AppSecret）必须且只能从根目录 `.env` 读取。**严禁向用户询问这些信息**。
+- **自动获取/刷新机制**:
+  1. **首次调用**: 若当前无 Token，AI 必须主动执行 [hdl-skills-hub](../SKILL.md) 定义的分步引导获取。
+  2. **令牌刷新**: 若业务接口返回 401（Unauthorized），AI 必须静默尝试 `refreshToken`。
+  3. **认证失败**: 若登录或刷新均失败，AI 必须告知用户认证已失效，并重新启动分步引导。
+- **Header 规范**: 所有业务接口必须在 Header 中携带 `Authorization: Bearer {accessToken}`。
 
-# 2. 接口概述
-该技能包含用户登录和 Token 刷新功能。
+# 2. 接口详细说明
 
 ## 2.1 用户登录 (login)
 - **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/user/oauth/login`
 - **请求方式**: `POST`
-- **核心价值**: 验证身份并获取初始的 `accessToken` 和 `refreshToken`。
+- **内容类型**: `application/json;charset=UTF-8`
+
+### 2.1.1 请求参数 (JSON Body)
+| 字段名 | 类型 | 必选 | 描述 | 示例 |
+| :--- | :--- | :--- | :--- | :--- |
+| `loginName` | String | **是** | 用户名或手机号。 | `"19210818109"` |
+| `loginPwd` | String | **是** | 用户登录密码。 | `"123456"` |
+| `grantType` | String | **是** | 授权类型，固定为 `"password"`。 | `"password"` |
+| `appKey` | String | **是** | (BaseDTO) 应用标识，取自 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名，详见 [sign-encryption-api](../sign-encryption-api/SKILL.md)。 | `"abc123xyz..."` |
+
+### 2.1.2 响应参数 (Result<LoginVO>)
+| 字段名 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `code` | Integer | 状态码（0 表示成功）。 |
+| `isSuccess` | Boolean | 是否成功。 |
+| `msg` | String | 错误提示信息。 |
+| `data.accessToken` | String | 访问令牌（用于后续业务请求）。 |
+| `data.refreshToken` | String | 刷新令牌。 |
+| `data.expiresIn` | Long | Token 有效期（秒）。 |
+
+### 2.1.3 登录成功示例 (Response)
+```json
+{
+  "code": 0,
+  "isSuccess": true,
+  "msg": "登录成功",
+  "data": {
+    "accessToken": "ey...",
+    "refreshToken": "rf...",
+    "expiresIn": 7200
+  }
+}
+```
 
 ## 2.2 刷新 Token (refreshToken)
 - **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/mgmt/user/idmOauth/refreshToken`
 - **请求方式**: `POST`
-- **核心价值**: 当 `accessToken` 过期时，实现无感续期。
+
+### 2.2.1 请求参数
+| 字段名 | 类型 | 必选 | 描述 | 示例 |
+| :--- | :--- | :--- | :--- | :--- |
+| `refreshToken` | String | **是** | 登录返回的刷新令牌。 | `"rf_abc123"` |
+| `appKey` | String | **是** | 取自 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | 13位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | 安全签名。 | `"xyz..."` |
 
 ---
 
 # 3. 核心交互场景设计
 
-### 场景 A：包含系统凭证确认的任务恢复链路
+### 场景 A: 任务恢复链路 (Conversational)
 1. **用户**: “查一下方悦面板。”
-2. **AI**: (检测未登录) -> “🔑 **HDL 认证** - 发现您尚未登录。请提供您的 **用户名**。”
-3. **用户**: “test_user”
+2. **AI**: (检测未登录) -> “🔑 **HDL 认证** - 请提供您的 **用户名**。”
+3. **用户**: “19210818109”
 4. **AI**: “好的。现在请提供 **登录密码**。”
 5. **用户**: “******”
-6. **AI**: (检测环境变量缺失 AppKey) -> 
-   > 我已收到您的用户名和密码。但在调用 HDL 系统之前，我需要确认一些配置信息。
-   > 
-   > 请问您有 HDL 系统的 AppKey 和 AppSecret 吗？这些是调用 API 的必要凭证。
-   > ... (完整引导话术)
-7. **用户**: “AppKey: XXX, AppSecret: YYY”
-8. **AI**: (调用登录接口成功) -> “登录成功！**已为您恢复任务**：方悦面板查询中... ✅”
+6. **AI**: (自动结合 .env 中的 AppKey/Secret 登录成功) -> “登录成功！正在为您查询方悦面板... ✅”
 
-### 场景 B：登录失败重试
-1. **AI**: 登录返回“用户名、密码或凭据错误”。
-2. **AI**: “❌ **认证失败**：提供的信息不正确。让我们重新开始。请输入您的 **用户名**：”。
+### 场景 B: 认证失败
+1. **AI**: “❌ **认证失败**：用户名或密码不正确。让我们重新开始。请输入您的 **用户名**：”。
 
 ---
 
-# 4. 用户登录接口 (login)
-
-## 3.1 请求参数 (JSON)
-| 字段名 | 类型 | 必选 | 描述 |
-| :--- | :--- | :--- | :--- |
-| `loginName` | String | **是** | 用户输入的登录用户名。 |
-| `loginPwd` | String | **是** | 用户输入的登录密码。 |
-| `grantType` | String | **是** | 授权类型，固定为 `password`。 |
-| `appKey` | String | **是** | 应用标识。固定为 `${HDL_APP_KEY}`。 |
-| `timestamp` | Long | **是** | 当前请求的时间戳（秒）。 |
-| `sign` | String | **是** | 安全签名。由 `sign-encryption-api` 计算。 |
-
-## 3.2 响应结果
-```json
-{
-  "code": 0,
-  "isSuccess": true,
-  "data": {
-    "accessToken": "...",
-    "refreshToken": "...",
-    "expiresIn": 86400
-  }
-}
-```
-
----
-
-# 4. 刷新 Token 接口 (refreshToken)
-
-## 4.1 请求参数 (JSON)
-| 字段名 | 类型 | 必选 | 描述 |
-| :--- | :--- | :--- | :--- |
-| `refreshToken` | String | **是** | 登录成功后返回的刷新令牌。 |
-| `appKey` | String | **是** | 固定为 `${HDL_APP_KEY}`。 |
-| `timestamp` | Long | **是** | 当前时间戳。 |
-| `sign` | String | **是** | 安全签名。 |
-
-## 4.2 请求示例 (JSON)
-```json
-{
-  "refreshToken": "REFRESH_TOKEN_FROM_PREVIOUS_LOGIN",
-  "appKey": "${HDL_APP_KEY}",
-  "timestamp": 1774517844,
-  "sign": "..."
-}
-```
-
-## 4.3 响应结果
-```json
-{
-  "code": 0,
-  "isSuccess": true,
-  "data": {
-    "accessToken": "NEW_ACCESS_TOKEN",
-    "refreshToken": "NEW_REFRESH_TOKEN",
-    "expiresIn": 86400
-  }
-}
-```
-
-# 5. 调用策略
-1. **优先认证**: 业务操作前检查 Token。若无，引导用户登录。
-2. **静默刷新**: 遇到 401 错误，AI 优先调用 `refreshToken`，成功后重试原业务请求。
-3. **彻底注销**: 若刷新也失败，清除所有 Token 并提示用户重新登录。
+# 4. 调用策略
+1. **静默刷新**: 当业务请求返回 401 时，AI 必须优先调用 `refreshToken`。
+2. **凭据持久化**: 登录成功后，AI 应在当前会话内存中持久化 Token，并遵循隐私规则不再展示。
+3. **安全隔离**: 严禁在日志或答复中打印 `accessToken`。

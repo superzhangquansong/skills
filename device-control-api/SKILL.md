@@ -11,43 +11,21 @@ priority: 60
 ---
 
 # 1. 强制认证与安全约束
-- **身份验证**: 所有接口调用必须在请求头中携带有效的 `Authorization: Bearer {accessToken}`。
-- **动态登录**: 如果当前没有 `accessToken`，AI **必须**先调用 `user-auth-api` 技能，并提示用户输入用户名和密码以获取 Token。
-- **Token 刷新**: 如果接口返回 Token 过期（如 401 错误或特定的过期提示），AI 应自动尝试使用 `refreshToken` 进行刷新。
-- **无 Token 不业务**: 只要没有有效的 Token，严禁执行任何设备查询或控制逻辑。
-
-# 2. 接口概述
-该技能包含三个核心接口：用于**获取设备列表**、**发送控制指令**以及**获取设备详情**。所有接口均采用 `POST` 方式，并要求完整的安全签名。
-
-## 1.1 获取设备列表 (getDeviceControlData)
-- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/list`
-- **认证方式**: `Bearer Token`
-- **核心逻辑**: 分页或全量获取当前家庭下的所有设备及其简要状态。
-
-## 1.2 控制设备 (controlDevice)
-- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/control`
-- **核心逻辑**: 向网关发送控制指令，支持批量控制。
-
-## 1.3 获取设备详情 (getDeviceInfo)
-- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/info`
-- **核心逻辑**: 根据设备 ID 列表获取设备的详细信息，包括物模型协议、属性配置、实时状态等。
+- **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用此接口。
+- **强制前置校验**: 在发起请求前，AI 必须确认 `accessToken` 存在。若不存在，必须先执行分步登录流程。
+- **401 处理**: 若接口返回 401（未授权），AI 必须立即尝试 `refreshToken`，成功后静默重试此请求。
+- **凭据源**: 系统变量必须从 `.env` 读取，严禁询问用户。
 
 ---
 
-# 2. 通用安全参数 (BaseDTO)
-所有请求的 JSON 根节点必须包含以下安全验证字段：
+# 2. 接口详细说明
 
-| 字段名 | 类型 | 必选 | 描述 | 示例 |
-| :--- | :--- | :--- | :--- | :--- |
-| `appKey` | String | **是** | 应用标识，固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
-| `timestamp` | Long | **是** | 13 位毫秒级时间戳。 | `1774425423000` |
-| `sign` | String | **是** | 安全签名。 | `abc123xyz...` |
+## 2.1 获取设备列表 (getDeviceControlData)
+- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/list`
+- **请求方式**: `POST`
+- **内容类型**: `application/json;charset=UTF-8`
 
----
-
-# 3. 获取设备列表接口 (getDeviceControlData)
-
-## 3.1 请求参数 (AppDeviceListDTO)
+### 2.1.1 请求参数 (AppDeviceListDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
 | `homeId` | Long | **是** | 住宅房屋 ID。**必须固定使用：`${HDL_HOME_ID}`**。 | `${HDL_HOME_ID}` |
@@ -59,8 +37,11 @@ priority: 60
 | `collect` | String | 否 | 是否只查询收藏设备：`"1"`(是), `"0"`(否)。 | `"1"` |
 | `pageSize` | Long | 否 | 每页条数（`searchType=PAGE` 时生效）。 | `10` |
 | `pageNo` | Long | 否 | 当前页码（`searchType=PAGE` 时生效）。 | `1` |
+| `appKey` | String | **是** | (BaseDTO) 取自 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13 位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名。 | `"abc123xyz..."` |
 
-## 3.2 请求示例 (JSON)
+### 2.1.2 请求示例 (JSON)
 ```json
 {
   "homeId": ${HDL_HOME_ID},
@@ -72,7 +53,7 @@ priority: 60
 }
 ```
 
-## 3.3 响应结果 (Result<PageVO<DeviceVO>>)
+### 2.1.3 响应结果 (Result<PageVO<DeviceVO>>)
 ```json
 {
   "code": 0,
@@ -98,14 +79,19 @@ priority: 60
 
 ---
 
-# 4. 控制设备接口 (controlDevice)
+## 2.2 控制设备 (controlDevice)
+- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/control`
+- **请求方式**: `POST`
 
-## 4.1 请求参数 (AppDeviceControlDTO)
+### 2.2.1 请求参数 (AppDeviceControlDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
 | `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`${HDL_HOME_ID}`。 | `${HDL_HOME_ID}` |
 | `gatewayId` | Long | **是** | 设备所属的网关 ID。 | `1483281443578613762` |
 | `actions` | List | **是** | 控制动作列表。 | (见下文) |
+| `appKey` | String | **是** | (BaseDTO) 固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13 位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名。 | `"abc123xyz..."` |
 
 ### Action 结构
 - `deviceId` (Long, 必填): 目标设备 ID。
@@ -114,7 +100,7 @@ priority: 60
   - `key` (String): 属性键（如 `on_off`, `brightness`, `target_temperature`）。
   - `value` (String): 属性值（如 `on`, `off`, `50`, `26`）。
 
-## 4.2 控制请求示例 (JSON)
+### 2.2.2 控制请求示例 (JSON)
 ```json
 {
   "homeId": ${HDL_HOME_ID},
@@ -135,27 +121,22 @@ priority: 60
 }
 ```
 
-## 4.3 响应结果
-```json
-{
-  "code": 0,
-  "isSuccess": true,
-  "data": true,
-  "msg": "操作成功"
-}
-```
-
 ---
 
-# 5. 获取设备详情接口 (getDeviceInfo)
+## 2.3 获取设备详情 (getDeviceInfo)
+- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/info`
+- **请求方式**: `POST`
 
-## 5.1 请求参数 (AppDeviceGetDTO)
+### 2.3.1 请求参数 (AppDeviceGetDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
 | `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`${HDL_HOME_ID}`。 | `${HDL_HOME_ID}` |
 | `deviceIds` | List<Long> | **是** | 需要查询详情的设备 ID 列表。 | `[1483281466097831937]` |
+| `appKey` | String | **是** | (BaseDTO) 固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13 位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名。 | `"abc123xyz..."` |
 
-## 5.2 请求示例 (JSON)
+### 2.3.2 请求示例 (JSON)
 ```json
 {
   "homeId": ${HDL_HOME_ID},

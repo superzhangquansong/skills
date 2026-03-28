@@ -11,16 +11,18 @@ priority: 55
 ---
 
 # 1. 强制认证与安全约束
-- **身份验证**: 所有接口调用必须在请求头中携带有效的 `Authorization: Bearer {accessToken}`。
-- **动态登录**: 如果当前没有 `accessToken`，AI **必须**先调用 `user-auth-api` 技能，并提示用户输入用户名和密码以获取 Token。
-- **Token 刷新**: 如果接口返回 Token 过期（如 401 错误或特定的过期提示），AI 应自动尝试使用 `refreshToken` 进行刷新。
-- **无 Token 不业务**: 只要没有有效的 Token，严禁执行任何购物车加车逻辑。
+- **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用此接口。
+- **强制前置校验**: 在发起请求前，AI 必须确认 `accessToken` 存在。若不存在，必须先执行分步登录流程。
+- **401 处理**: 若接口返回 401（未授权），AI 必须立即尝试 `refreshToken`，成功后静默重试此请求。
+- **凭据源**: 系统变量必须从 `.env` 读取，严禁询问用户。
 
 # 2. 接口概述
 该技能包含核心接口：用于**添加商品到购物车**。
 
-## 1.1 添加商品到购物车 (addToShoppingCart)
-- **接口地址**: `https://gateway.hdlcontrol.com/crm-wisdom/shoppingCarts/add`
+# 2. 接口详细说明
+
+## 2.1 添加到购物车 (addToShoppingCart)
+- **接口地址**: `https://gateway.hdlcontrol.com/crm-wisdom/agent/shoppingCart/save`
 - **请求方式**: `POST`
 - **认证方式**: `Bearer Token` (Header: `Authorization`)
 - **签名算法**: 参考 [sign-encryption-api](../sign-encryption-api/SKILL.md)
@@ -42,11 +44,11 @@ priority: 55
 | `projectType` | String | 否 | 项目类型。 | `"DOMESTIC"` |
 | `productSpecsExtDataList` | List | 否 | 产品扩展规格数据。 | (见下文) |
 | `accessoriesSkuExtDataList` | List | 否 | 配件扩展规格数据。 | (见下文) |
-| `appKey` | String | 是 | 固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
-| `timestamp` | Long | 是 | 时间戳。 | `1774423171` |
-| `sign` | String | 是 | 安全签名。 | `"..."` |
+| `appKey` | String | **是** | (BaseDTO) 应用标识，固定从 `.env` 读取 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13位毫秒级时间戳。 | `1774423171000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名，计算详见 [sign-encryption-api](../sign-encryption-api/SKILL.md)。 | `"abc123xyz..."` |
 
-## 2.2 请求示例 (JSON)
+### 2.1.2 完整请求示例 (JSON)
 ```json
 {
   "skuNum": 2,
@@ -56,12 +58,20 @@ priority: 55
   "projectId": 123456789,
   "projectName": "河东智能家居项目",
   "appKey": "${HDL_APP_KEY}",
-  "timestamp": 1774423171,
-  "sign": "..."
+  "timestamp": 1774423171000,
+  "sign": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"
 }
 ```
 
-## 2.3 响应结构
+### 2.1.3 响应结构 (Result<Boolean>)
+| 字段名 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `code` | Integer | 状态码 (0 表示成功)。 |
+| `isSuccess` | Boolean | 是否执行成功。 |
+| `data` | Boolean | 返回结果。 |
+| `msg` | String | 提示消息。 |
+
+### 2.1.4 响应示例
 ```json
 {
   "code": 0,

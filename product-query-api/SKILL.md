@@ -11,22 +11,19 @@ priority: 50
 ---
 
 # 1. 强制认证与安全约束
-- **身份验证**: 所有接口调用必须在请求头中携带有效的 `Authorization: Bearer {accessToken}`。
-- **动态登录**: 如果当前没有 `accessToken`，AI **必须**先调用 `user-auth-api` 技能，并提示用户输入用户名和密码以获取 Token。
-- **Token 刷新**: 如果接口返回 Token 过期（如 401 错误或特定的过期提示），AI 应自动尝试使用 `refreshToken` 进行刷新。
-- **无 Token 不业务**: 只要没有有效的 Token，严禁执行任何产品检索逻辑。
+- **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用此接口。
+- **强制前置校验**: 在发起请求前，AI 必须确认 `accessToken` 存在。若不存在，必须先执行分步登录流程。
+- **401 处理**: 若接口返回 401（未授权），AI 必须立即尝试 `refreshToken`，成功后静默重试此请求。
+- **凭据源**: 系统变量必须从 `.env` 读取，严禁询问用户。
 
-# 2. 接口概述
-该接口用于获取 HDL 渠道商优选商城的分页产品列表。它是 OpenClaw 获取商城实时库存、产品规格详情及关联配件的核心手段。
+# 2. 接口详细说明
 
+## 2.1 渠道商优选商城产品分页查询 (queryProductPage)
 - **接口地址**: `https://gateway.hdlcontrol.com/crm-wisdom/agent/product/page`
 - **请求方式**: `POST`
-- **内容类型**: `application/json;charset=UTF-8`
-- **认证方式**: `Bearer Token` (Header: `Authorization`)。Token 的获取请参考：[user-auth-api](file:///Users/super_song/Project/hdl-project/hdl-mcp-server/src/main/resources/.claude/skills/user-auth-api/SKILL.md)。
+- **认证方式**: `Bearer Token` (Header: `Authorization`)
 
-# 2. 请求参数详解 (DistributorsProductPageDTO)
-
-## 2.1 完整字段列表
+### 2.1.1 请求参数 (JSON Body)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
 | **pageNo** | Long | **是** | 当前页码，从 1 开始。 | `1` |
