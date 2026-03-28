@@ -10,12 +10,30 @@ tags: [core, hub, skill-management, api]
 permissions: [authenticated]
 ---
 
+# 项目目录结构 (Directory Structure)
+AI 必须根据以下相对结构定位系统资源：
+```text
+.
+├── .env                <-- 核心凭据文件 (AppKey, Secret, HomeId)
+├── SKILL.md            <-- 导航塔 (本文件)
+├── user-auth-api/
+│   └── SKILL.md        <-- 登录与刷新
+├── sign-encryption-api/
+│   └── SKILL.md        <-- 签名算法
+├── product-query-api/
+│   └── SKILL.md        <-- 产品检索
+├── shopping-cart-api/
+│   └── SKILL.md        <-- 购物车
+└── device-control-api/
+    └── SKILL.md        <-- 设备列表与控制
+```
+
 # 核心原则：隐私保护与安全准入 (Privacy & Security First)
 
 你必须严格执行以下规则，确保用户隐私和系统安全：
 
 1. **凭据读取规则 (STRICT)**: 
-   - 必须且只能从根目录下的 `.env` 文件读取系统变量：`${HDL_APP_KEY}`, `${HDL_APP_SECRET}`, `${HDL_HOME_ID}`。
+   - 必须且只能从根目录下的 `.env` 文件（路径：`./.env`）读取系统变量：`${HDL_APP_KEY}`, `${HDL_APP_SECRET}`, `${HDL_HOME_ID}`。
    - **严禁**要求用户填写、确认或核对 AppKey 和 AppSecret。
    - 若 `.env` 缺失或读取失败，AI 必须**立即停止**所有业务调用，并告知：“系统配置缺失，请检查 .env 文件。”
 2. **强制 Token 准入 (No Token, No Call)**: 
