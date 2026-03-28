@@ -40,10 +40,10 @@ permissions: [authenticated]
 ## 1. 身份认证与安全 (Auth & Security)
 - **[用户身份认证 (user-auth-api)](./user-auth-api/SKILL.md)**: 
   - **核心价值**: 提供用户登录、无感刷新、本地凭据托管及退出登录入口。
-  - **依赖**: 必须使用 `EISTBZLX` 作为 `appKey`。
+  - **依赖**: 必须使用环境变量 `${HDL_APP_KEY}` 作为 `appKey`。
 - **[接口安全签名算法 (sign-encryption-api)](./sign-encryption-api/SKILL.md)**: 
-  - **核心价值**: 定义了所有 POST 请求必须遵循的 MD5 签名逻辑。
-  - **密钥**: `EISTBZMNEISTBZND`。
+  - **核心价值**: 定义了所有 POST 请求必须遵循面 MD5 签名逻辑。
+  - **密钥**: 使用环境变量 `${HDL_APP_SECRET}`。
 
 ## 2. 业务功能 (Business Logic)
 - **[渠道商优选商城产品查询 (product-query-api)](./product-query-api/SKILL.md)**: 
@@ -52,7 +52,7 @@ permissions: [authenticated]
   - **核心价值**: 实现产品及配件的加车操作，支持详细的定制化规格（如镭雕内容）。
 - **[智能家居设备查询与控制 (device-control-api)](./device-control-api/SKILL.md)**:
   - **核心价值**: 实时查询家庭设备列表、获取物模型详情及执行精准控制指令。
-  - **约束**: **必须固定使用 `homeId: 2030894747884621826` 进行设备操作**。
+  - **约束**: **必须固定使用环境变量 `${HDL_HOME_ID}` 进行设备操作**。
 
 ## 3. 传统维护技能
 - **设备控制 (device-control)**: 智能家居设备（灯光、空调、窗帘等）的实时状态查询与精准控制。

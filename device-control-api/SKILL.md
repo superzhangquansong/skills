@@ -38,9 +38,9 @@ priority: 60
 
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `appKey` | String | **是** | 应用标识，固定为 `EISTBZLX`。 | `"EISTBZLX"` |
-| `timestamp` | Long | **是** | 当前 10 位时间戳（秒）。 | `1774423171` |
-| `sign` | String | **是** | 接口签名，计算逻辑参考 [sign-encryption-api](./sign-encryption-api/SKILL.md)。 | `"5d41402abc4b2a76b9719d911017c592"` |
+| `appKey` | String | **是** | 应用标识，固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | 13 位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | **是** | 安全签名。 | `abc123xyz...` |
 
 ---
 
@@ -49,7 +49,7 @@ priority: 60
 ## 3.1 请求参数 (AppDeviceListDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `homeId` | Long | **是** | 住宅房屋 ID。**必须固定使用：`2030894747884621826`**。 | `2030894747884621826` |
+| `homeId` | Long | **是** | 住宅房屋 ID。**必须固定使用：`${HDL_HOME_ID}`**。 | `${HDL_HOME_ID}` |
 | `gatewayId` | Long | 否 | 指定网关 ID 查询。 | `1483281443578613762` |
 | `searchType` | String | 否 | 查询方式：`ALL`(全量, 默认), `PAGE`(分页)。 | `"ALL"` |
 | `roomId` | Long | 否 | 按房间 ID 过滤。 | `1483281443578613763` |
@@ -62,12 +62,12 @@ priority: 60
 ## 3.2 请求示例 (JSON)
 ```json
 {
-  "homeId": 2030894747884621826,
+  "homeId": ${HDL_HOME_ID},
   "searchType": "ALL",
   "isGetProtocol": true,
-  "appKey": "EISTBZLX",
-  "timestamp": 1774423171,
-  "sign": "..."
+  "appKey": "${HDL_APP_KEY}",
+  "timestamp": 1774425423000,
+  "sign": "abc123xyz..."
 }
 ```
 
@@ -102,7 +102,7 @@ priority: 60
 ## 4.1 请求参数 (AppDeviceControlDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`2030894747884621826`。 | `2030894747884621826` |
+| `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`${HDL_HOME_ID}`。 | `${HDL_HOME_ID}` |
 | `gatewayId` | Long | **是** | 设备所属的网关 ID。 | `1483281443578613762` |
 | `actions` | List | **是** | 控制动作列表。 | (见下文) |
 
@@ -116,7 +116,7 @@ priority: 60
 ## 4.2 控制请求示例 (JSON)
 ```json
 {
-  "homeId": 2030894747884621826,
+  "homeId": ${HDL_HOME_ID},
   "gatewayId": 1483281443578613762,
   "actions": [
     {
@@ -128,9 +128,9 @@ priority: 60
       ]
     }
   ],
-  "appKey": "EISTBZLX",
-  "timestamp": 1774423171,
-  "sign": "..."
+  "appKey": "${HDL_APP_KEY}",
+  "timestamp": 1774425423000,
+  "sign": "abc123xyz..."
 }
 ```
 
@@ -151,17 +151,17 @@ priority: 60
 ## 5.1 请求参数 (AppDeviceGetDTO)
 | 字段名 | 类型 | 必选 | 描述 | 示例 |
 | :--- | :--- | :--- | :--- | :--- |
-| `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`2030894747884621826`。 | `2030894747884621826` |
+| `homeId` | Long | **是** | 住宅房屋 ID。固定使用：`${HDL_HOME_ID}`。 | `${HDL_HOME_ID}` |
 | `deviceIds` | List<Long> | **是** | 需要查询详情的设备 ID 列表。 | `[1483281466097831937]` |
 
 ## 5.2 请求示例 (JSON)
 ```json
 {
-  "homeId": 2030894747884621826,
+  "homeId": ${HDL_HOME_ID},
   "deviceIds": [1483281466097831937],
-  "appKey": "EISTBZLX",
-  "timestamp": 1774423171,
-  "sign": "..."
+  "appKey": "${HDL_APP_KEY}",
+  "timestamp": 1774425423000,
+  "sign": "abc123xyz..."
 }
 ```
 

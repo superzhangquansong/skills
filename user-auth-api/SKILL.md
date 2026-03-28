@@ -54,7 +54,7 @@ priority: 100
 | `loginName` | String | **是** | 用户输入的登录用户名。 |
 | `loginPwd` | String | **是** | 用户输入的登录密码。 |
 | `grantType` | String | **是** | 授权类型，固定为 `password`。 |
-| `appKey` | String | **是** | 应用标识。固定为 `EISTBZLX`。 |
+| `appKey` | String | **是** | 应用标识。固定为 `${HDL_APP_KEY}`。 |
 | `timestamp` | Long | **是** | 当前请求的时间戳（秒）。 |
 | `sign` | String | **是** | 安全签名。由 `sign-encryption-api` 计算。 |
 
@@ -79,7 +79,7 @@ priority: 100
 | 字段名 | 类型 | 必选 | 描述 |
 | :--- | :--- | :--- | :--- |
 | `refreshToken` | String | **是** | 登录成功后返回的刷新令牌。 |
-| `appKey` | String | **是** | 固定为 `EISTBZLX`。 |
+| `appKey` | String | **是** | 固定为 `${HDL_APP_KEY}`。 |
 | `timestamp` | Long | **是** | 当前时间戳。 |
 | `sign` | String | **是** | 安全签名。 |
 
@@ -87,7 +87,7 @@ priority: 100
 ```json
 {
   "refreshToken": "REFRESH_TOKEN_FROM_PREVIOUS_LOGIN",
-  "appKey": "EISTBZLX",
+  "appKey": "${HDL_APP_KEY}",
   "timestamp": 1774517844,
   "sign": "..."
 }

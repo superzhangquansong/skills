@@ -43,9 +43,9 @@ priority: 50
 | `productSaleTypes` | List<String>| 否 | 产品在售类型，通常由系统填充。 | `["STANDARDS"]` |
 | `zoneType` | String | 否 | 区域类型。 | `"DOMESTIC"` |
 | `accessToken` | String | 否 | **(BaseDTO)** 用户身份令牌（系统自动处理）。来源：[user-auth-api](file:///Users/super_song/Project/hdl-project/hdl-mcp-server/src/main/resources/.claude/skills/user-auth-api/SKILL.md)。 | `"Bearer eyJhbG..."` |
-| `appKey` | String | 否 | **(BaseDTO)** 应用标识。固定为 `EISTBZLX`。 | `"EISTBZLX"` |
-| `timestamp` | Long | 否 | **(BaseDTO)** 时间戳（秒）。 | `1774423171` |
-| `sign` | String | 否 | **(BaseDTO)** 安全签名。生成算法参考：[sign-encryption-api](file:///Users/super_song/Project/hdl-project/hdl-mcp-server/src/main/resources/.claude/skills/sign-encryption-api/SKILL.md)。注意：使用 `AppSecret: EISTBZMNEISTBZND` 进行签名。 | `"abc123xyz..."` |
+| `appKey` | String | 否 | **(BaseDTO)** 应用标识。固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
+| `timestamp` | Long | 否 | **(BaseDTO)** 当前 13 位毫秒级时间戳。 | `1774425423000` |
+| `sign` | String | 否 | **(BaseDTO)** 安全签名。生成算法参考：[sign-encryption-api](file:///Users/super_song/Project/hdl-project/hdl-mcp-server/src/main/resources/.claude/skills/sign-encryption-api/SKILL.md)。注意：使用 `AppSecret: ${HDL_APP_SECRET}` 进行签名。 | `"abc123xyz..."` |
 | `requestId` | String | 否 | **(BaseDTO)** 请求唯一 ID。 | `"req_001"` |
 
 ## 2.2 完整请求 JSON 示例

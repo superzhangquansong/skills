@@ -41,7 +41,7 @@ priority: 55
 | `projectType` | String | 否 | 项目类型。 | `"DOMESTIC"` |
 | `productSpecsExtDataList` | List | 否 | 产品扩展规格数据。 | (见下文) |
 | `accessoriesSkuExtDataList` | List | 否 | 配件扩展规格数据。 | (见下文) |
-| `appKey` | String | 是 | 固定为 `EISTBZLX`。 | `"EISTBZLX"` |
+| `appKey` | String | 是 | 固定为 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
 | `timestamp` | Long | 是 | 时间戳。 | `1774423171` |
 | `sign` | String | 是 | 安全签名。 | `"..."` |
 
@@ -54,7 +54,7 @@ priority: 55
   "erpNo": "308013573",
   "projectId": 123456789,
   "projectName": "河东智能家居项目",
-  "appKey": "EISTBZLX",
+  "appKey": "${HDL_APP_KEY}",
   "timestamp": 1774423171,
   "sign": "..."
 }

@@ -14,42 +14,28 @@ priority: 90
 
 核心逻辑参考：`com.hdl.mcp.utils.RestUtil#getSign`
 
-# 2. 签名生成步骤
+## 1. 签名算法核心步骤
+所有 POST 请求的 JSON 根节点必须包含 `BaseDTO` 字段。其中 `sign` 的计算逻辑如下：
 
-## 步骤 1：收集参数
-将请求体中除 `sign` 以外的所有非空字段收集到一个 Map 中。
-- **注意**: 字段值为空字符串或 null 的参数不参与签名。
+1. **收集参数**: 收集请求体中所有**非空**且**非 null** 的字段（排除 `sign` 字段本身）。
+2. **排序参数**: 将所有收集到的字段名按 **ASCII 码从小到大** 排序（字典序）。
+3. **拼接字符串**: 将排序后的参数按 `key=value` 格式拼接，并用 `&` 连接。
+   - 示例: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423`
+4. **追加密钥**: 在拼接好的字符串末尾直接追加 `AppSecret`。
+   - 示例: `...timestamp=1774425423${HDL_APP_SECRET}`
+5. **计算 MD5**: 对最终生成的字符串进行 MD5 加密，并将结果转换为 **小写**。
 
-## 步骤 2：参数排序
-将收集到的参数名（Key）按 **字母升序 (A-Z)** 进行排序。
-
-## 步骤 3：拼接字符串
-按照 `key1=value1&key2=value2...` 的格式拼接排序后的参数。
-- **示例**: 如果参数有 `appKey=test`, `timestamp=123`, `loginName=hdl`，拼接后为：`appKey=test&loginName=hdl&timestamp=123`。
-
-## 步骤 4：追加密钥
-在拼接好的字符串末尾直接追加 `appSecret`（无需 `&` 符号）。
-- **公式**: `待签名字符串 = 参数拼接串 + appSecret`
-
-## 步骤 5：MD5 加密
-使用 **UTF-8** 编码对最终字符串进行 MD5 加密，并将结果转换为 **小写 (Lowercase)**。
-
-# 3. 示例演示
-
-### 场景：登录请求
-- **参数**:
-  - `loginName`: "19210818109"
-  - `loginPwd`: "123456"
-  - `grantType`: "password"
-  - `appKey`: "EISTBZLX"
+## 2. 签名示例 (以登录请求为例)
+- **BaseDTO 参数**:
+  - `appKey`: "${HDL_APP_KEY}"
   - `timestamp`: 1774425423
-- **AppSecret**: "EISTBZMNEISTBZND"
+- **AppSecret**: "${HDL_APP_SECRET}"
 
-### 过程：
-1. **排序后拼接**: `appKey=EISTBZLX&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423`
-2. **追加密钥**: `...timestamp=1774425423EISTBZMNEISTBZND`
-3. **MD5 (小写)**: `EISTBZMNEISTBZND` (注：此处 sign 仅为示例，实际调用需按参数实时计算)
+### 签名计算过程
+1. **排序后拼接**: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423`
+2. **追加密钥**: `appKey=${HDL_APP_KEY}&grantType=password&loginName=19210818109&loginPwd=123456&timestamp=1774425423${HDL_APP_SECRET}`
+3. **MD5 (小写)**: `3a5...` (注：此处 sign 仅为示例，实际调用需按参数实时计算)
 
-# 4. 调用建议
-1. **自动签名**: AI 在构造请求体时，应先收集业务参数，然后根据此算法自动计算 `sign` 字段。使用 `AppSecret: EISTBZMNEISTBZND`。
-2. **Secret 管理**: `appSecret` 已经通过用户指令更新为 `EISTBZMNEISTBZND`。
+## 3. 约束与安全
+1. **自动签名**: AI 在构造请求体时，应先收集业务参数，然后根据此算法自动计算 `sign` 字段。使用环境变量 `${HDL_APP_SECRET}`。
+2. **Secret 管理**: `appSecret` 已经统一存储在 `.env` 文件的 `HDL_APP_SECRET` 中，严禁在文档中硬编码。
