@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDL 安全登录 - Claw</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f7f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo { font-size: 28px; font-weight: 800; color: #007aff; margin-bottom: 0.5rem; }
+        .subtitle { color: #666; font-size: 14px; margin-bottom: 2rem; }
+        .input-group { margin-bottom: 1.2rem; text-align: left; }
+        label { display: block; font-size: 13px; color: #888; margin-bottom: 0.5rem; font-weight: 600; }
+        input {
+            width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 10px;
+            box-sizing: border-box; font-size: 16px; transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: #007aff; }
+        button {
+            width: 100%; padding: 14px; background-color: #007aff; color: white;
+            border: none; border-radius: 10px; font-size: 16px; font-weight: 600;
+            cursor: pointer; margin-top: 1.5rem; transition: transform 0.1s, background 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #cbd5e0; cursor: not-allowed; }
+        .status-msg { 
+            margin-top: 1.2rem; padding: 10px; border-radius: 8px; font-size: 14px; display: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">HDL 安全登录</div>
+        <div class="subtitle">Claw 助手身份验证</div>
+        
+        <div class="input-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" placeholder="请输入您的 HDL 账号" autocomplete="username">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="请输入登录密码" autocomplete="current-password">
+        </div>
+        
+        <button id="loginBtn" onclick="handleLogin()">确认并回传给 AI</button>
+        <div id="status" class="status-msg"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('sessionId');
+        const loginBtn = document.getElementById('loginBtn');
+        let socket = null;
+
+        // 初始化 WebSocket 连接
+        function initWebSocket() {
+            if (!sessionId) {
+                showStatus('错误：未检测到有效的 Session ID', '#e53e3e', '#fff5f5');
+                loginBtn.disabled = true;
+                return;
+            }
+
+            // 连接到指定的生产环境 WS 端点
+            socket = new WebSocket(`ws://14.103.240.202:8588/ws-openclaw-login`);
+            
+            socket.onopen = () => {
+                console.log('Connected to OpenClaw Auth Channel');
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    // 接收来自 AI 代理登录的结果反馈
+                    if (data.type === 'AUTH_RESULT') {
+                        if (data.success) {
+                            showStatus('✅ 登录成功！请回到 AI 对话窗口。', '#2f855a', '#f0fff4');
+                        } else {
+                            showStatus(`❌ 登录失败：${data.message || '凭据错误'}`, '#e53e3e', '#fff5f5');
+                            loginBtn.disabled = false;
+                            loginBtn.innerText = '重新尝试登录';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Message Parse Error:', e);
+                }
+            };
+
+            socket.onclose = () => {
+                showStatus('⚠️ 连接已断开，请刷新页面重试', '#d69e2e', '#fffaf0');
+                loginBtn.disabled = true;
+            };
+        }
+
+        function handleLogin() {
+            const loginName = document.getElementById('username').value.trim();
+            const loginPwd = document.getElementById('password').value;
+            
+            if (!loginName || !loginPwd) return alert('请完整填写用户名和密码');
+            if (!socket || socket.readyState !== WebSocket.OPEN) return alert('通信频道未就绪，请刷新页面');
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = '凭据回传中...';
+            showStatus('正在通过加密通道同步凭据...', '#4a5568', '#f7fafc');
+
+            // 按照规范发送 JSON 消息
+            const payload = {
+                loginName: loginName,
+                loginPwd: loginPwd,
+                sessionId: sessionId // 必须回传 sessionId 以供后端识别
+            };
+
+            socket.send(JSON.stringify(payload));
+        }
+
+        function showStatus(msg, color, bgColor) {
+            const s = document.getElementById('status');
+            s.style.display = 'block';
+            s.innerText = msg;
+            s.style.color = color;
+            s.style.backgroundColor = bgColor;
+        }
+
+        // 页面加载后启动
+        window.onload = initWebSocket;
+    </script>
+</body>
+</html>
