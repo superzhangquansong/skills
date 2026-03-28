@@ -21,7 +21,7 @@ priority: 60
 # 2. 接口详细说明
 
 ## 2.1 获取设备列表 (getDeviceControlData)
-- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/list`
+- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/list`
 - **请求方式**: `POST`
 - **内容类型**: `application/json;charset=UTF-8`
 
@@ -80,7 +80,7 @@ priority: 60
 ---
 
 ## 2.2 控制设备 (controlDevice)
-- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/control`
+- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/control`
 - **请求方式**: `POST`
 
 ### 2.2.1 请求参数 (AppDeviceControlDTO)
@@ -124,7 +124,7 @@ priority: 60
 ---
 
 ## 2.3 获取设备详情 (getDeviceInfo)
-- **接口地址**: `https://gateway.hdlcontrol.com/basis-footstone/app/device/info`
+- **接口地址**: `https://gateway.hdlcontrol.com/home-wisdom/app/device/info`
 - **请求方式**: `POST`
 
 ### 2.3.1 请求参数 (AppDeviceGetDTO)
