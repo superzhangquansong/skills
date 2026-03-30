@@ -162,6 +162,46 @@ priority: 60
 
 ---
 
+# 4. 设备功能类型 (SPK) 与本地视觉反馈映射
+AI 在控制设备成功后，**必须**展示对应的状态图片。优先展示接口返回的 `imageUrl` 或 `icon`；若接口无返回，则根据 `spk` 和设备状态使用以下 **本地资源 (Local Assets)** 进行展示。
+
+### 4.1 本地图片命名规则 (MANDATORY)
+AI 必须根据设备的 `spk` 字段和当前控制/查询到的状态，**将其翻译为开发者规定的“固定状态词 (Fixed Status Words)”**，然后动态拼接文件名。
+
+**命名规则**: `spk` + `_` + `固定状态词` + `.png`
+**存放路径**: `../assets/images/`
+
+#### 开发者规定的固定状态词映射表:
+| 用户意图/设备状态描述 | AI 翻译后的固定状态词 | 示例 (以 spk=light.rgb 为例) |
+| :--- | :--- | :--- |
+| 暖色、暖光、温馨模式 | `warm` | `light.rgb_warm.png` |
+| 冷色、冷光、办公模式 | `cold` | `light.rgb_cold.png` |
+| 中性光、自然光 | `medium` | `light.rgb_medium.png` |
+| 关闭、熄灭、停止运行 | `close` | `light.rgb_close.png` |
+| 开启、打开、启动 (通用) | `on` | `light.switch_on.png` |
+| 关闭、断开 (通用) | `off` | `light.switch_off.png` |
+| 打开、展开 (如窗帘) | `open` | `curtain_open.png` |
+| 停止、保持 (如窗帘) | `stop` | `curtain_stop.png` |
+| 触发、报警、检测到 (传感器) | `active` | `sensor_active.png` |
+
+---
+
+# 5. 交互示例 (意图转换与本地图片反馈)
+
+### 场景 A：色温灯调节
+1. **用户**：“把书房灯调成温馨的暖色。”
+2. **AI**：(调用 `controlDevice`) -> (识别 spk 为 `light.rgb`) -> (将“温馨的暖色”映射为固定词 `warm`)
+3. **AI**：“好的，书房灯已为您调节为暖色。✅  
+   ![书房暖色灯](../assets/images/light.rgb_warm.png)”
+
+### 场景 B：窗帘控制
+1. **用户**：“把窗帘拉开一半吧。”
+2. **AI**：(调用 `controlDevice`) -> (识别 spk 为 `curtain`) -> (将“拉开”映射为固定词 `open`)
+3. **AI**：“好的，正在为您拉开窗帘。✅  
+   ![窗帘打开](../assets/images/curtain_open.png)”
+
+---
+
 # 6. 调用策略与最佳实践
 1. **先查后控**: AI 应当先通过 `getDeviceControlData` 获取设备列表，识别出 `deviceId`、`gatewayId` 和支持的 `spk`。
 2. **状态反馈**: 控制成功后，AI 应当根据接口返回的 `isSuccess` 状态，结合控制时的属性值（如 `on_off: on`）告知用户操作结果。

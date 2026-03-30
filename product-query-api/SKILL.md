@@ -83,6 +83,7 @@ priority: 50
 | `productModel` | String | 产品型号。 |
 | `protocol` | String | 协议名称。 |
 | `unit` | String | 单位。 |
+| `imageUrl` | String | **产品展示图片 URL (AI 必须展示此图片)**。 |
 | `supplierName` | String | 供应商。 |
 | `tags` | List<String> | 标签，如 `["NEW", "HOT"]`。 |
 | `skuList` | List<VO> | **核心：SKU 列表**。 |

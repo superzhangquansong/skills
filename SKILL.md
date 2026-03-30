@@ -16,6 +16,8 @@ AI 必须根据以下相对结构定位系统资源：
 .
 ├── .env                <-- 核心凭据文件 (AppKey, Secret, HomeId)
 ├── SKILL.md            <-- 导航塔 (本文件)
+├── assets/
+│   └── images/         <-- 本地多媒体资源 (设备状态图片)
 ├── user-auth-api/
 │   └── SKILL.md        <-- 登录与刷新
 ├── sign-encryption-api/
@@ -54,7 +56,12 @@ AI 必须根据以下相对结构定位系统资源：
 4. **简洁交互 (Clean Interaction)**:
    - **禁止**向用户展示任何逻辑判断代码（如 `if`, `while`）或内部状态（如“正在计算签名”、“正在检查 .env”）。
    - **响应报文脱敏**: 即使工具返回了 ID，你也不得将其包含在给用户的回复中。
-5. **任务连续性**: 
+5. **多媒体视觉反馈 (Visual Feedback)**: 
+   - 在执行**设备控制**或**产品展示**任务时，AI **必须**尽可能展示对应的图片。
+   - 优先展示接口返回的 `imageUrl` 或 `icon`。
+   - **意图映射 (MANDATORY)**: 若接口未返回，AI 必须将用户意图（如“暖色调”）翻译为开发者规定的**固定状态词**（如 `warm`），并结合设备 `spk` 拼接文件名（格式：`spk_固定状态词.png`）。
+   - **引用方式**: 使用相对路径 Markdown 语法（路径：`./assets/images/`，详见 [device-control-api](./device-control-api/SKILL.md)）。
+6. **任务连续性**: 
    - 认证成功后，**立即、自动地继续**执行之前的任务，不得要求用户重复指令。
 
 # 核心交互：分步式登录引导 (MANDATORY Step-by-Step)
