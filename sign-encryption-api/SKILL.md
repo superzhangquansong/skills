@@ -20,11 +20,13 @@ priority: 90
 
 ### 第一步：参数提取与过滤 (Filter)
 1. 提取待发送请求体（JSON Body）中的所有一级字段。
-2. 过滤掉值为 `null`、空字符串 `""` 或不存在的字段。
-3. **关键**：过滤掉字段名为 `sign` 的字段（签名本身不参与计算）。
+2. **类型过滤 (CRITICAL)**: 仅保留基础类型字段（如 `String`, `Number`, `Boolean`）。
+3. **排除复杂对象**: **严禁**将任何集合类型（`List`, `Array`）或嵌套对象（`Object`, `Map`）包含在签名计算中。
+4. 过滤掉值为 `null`、空字符串 `""` 或不存在的字段。
+5. **字段名过滤**: 过滤掉字段名为 `sign` 的字段（签名本身不参与计算）。
 
 ### 第二步：参数排序 (Sort)
-将过滤后的所有 `key=value` 对，按照字段名（key）的 **ASCII 码从小到大** 进行排序（即字典序排序）。
+将过滤后的所有基础类型 `key=value` 对，按照字段名（key）的 **ASCII 码从小到大** 进行排序（即字典序排序）。
 
 ### 第三步：字符串拼接 (Concat)
 将排序后的参数对按照 `key=value` 的格式拼接，并使用 `&` 符号连接。
@@ -40,25 +42,31 @@ priority: 90
 2. 将加密结果统一转换为 **小写 (Lowercase)**。
 3. 该值即为最终发送请求时的 `sign` 字段值。
 
-# 3. 完整计算示例 (以登录为例)
+# 3. 完整计算示例 (含复杂对象过滤)
 假设环境变量如下：
 - `HDL_APP_KEY`: `my_app_01`
 - `HDL_APP_SECRET`: `secret_888`
 
-待发送数据：
+待发送请求体 (JSON Body)：
 ```json
 {
   "loginName": "19210818109",
-  "loginPwd": "pwd_123",
-  "grantType": "password",
   "appKey": "my_app_01",
-  "timestamp": 1774425423
+  "timestamp": 1774425423,
+  "roles": ["admin", "user"], 
+  "config": { "theme": "dark" }
 }
 ```
 
-1. **排序拼接串**：`appKey=my_app_01&grantType=password&loginName=19210818109&loginPwd=pwd_123&timestamp=1774425423`
-2. **追加密钥串**：`appKey=my_app_01&grantType=password&loginName=19210818109&loginPwd=pwd_123&timestamp=1774425423secret_888`
-3. **MD5 结果**：`f7e8c...` (小写)
+**签名计算流程：**
+1. **参数提取**: `loginName`, `appKey`, `timestamp`, `roles`, `config`
+2. **过滤排除**: 
+   - `roles` (List) -> **不参与签名**
+   - `config` (Object) -> **不参与签名**
+3. **保留字段**: `appKey`, `loginName`, `timestamp`
+4. **排序拼接串**: `appKey=my_app_01&loginName=19210818109&timestamp=1774425423`
+5. **追加密钥串**: `appKey=my_app_01&loginName=19210818109&timestamp=1774425423secret_888`
+6. **MD5 结果**: 对上述串进行 MD5 并转小写。
 
 # 4. 约束与隐私规则
 - **凭据源 (STRICT)**: `AppKey` 和 `AppSecret` **必须且只能**从根目录下的 `.env` 文件（路径：`../.env`）读取。**严禁向用户询问、确认或核对这些信息**。若读取失败，AI 必须报错并停止。
