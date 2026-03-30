@@ -12,7 +12,7 @@ priority: 100
 
 # 1. 强制认证与安全约束
 - **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用任何业务接口。
-- **凭据源 (STRICT)**: 所有系统凭据（AppKey, AppSecret）必须且只能从根目录下的 `.env` 文件（路径：`../.env`）读取。**严禁向用户询问这些信息**。
+- **凭据源 (STRICT)**: 所有系统凭据（AppKey, ApSecret）必须且只能从根目录下的 `.env` 文件（路径：`../.env`）读取。**严禁向用户询问这些信息**。
 - **自动获取/刷新机制**:
   1. **首次调用**: 若当前无 Token，AI 必须主动执行 [hdl-skills-hub](../SKILL.md) 定义的分步引导获取。
   2. **令牌刷新**: 若业务接口返回 401（Unauthorized），AI 必须静默尝试 `refreshToken`。
