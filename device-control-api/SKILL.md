@@ -28,20 +28,19 @@ priority: 60
 - **内容类型**: `application/json;charset=UTF-8`
 
 ### 2.1.1 请求参数 (AppDeviceListDTO)
-| 字段名 | 类型 | 必选 | 描述 | 示例 |
-| :--- | :--- | :--- | :--- | :--- |
+| 字段名 | 类型 | 必选 | 描述                                   | 示例 |
+| :--- | :--- | :--- |:-------------------------------------| :--- |
 | `homeId` | Long | **是** | 住宅房屋 ID。**必须固定使用：`${HDL_HOME_ID}`**。 | `${HDL_HOME_ID}` |
-| `gatewayId` | Long | 否 | 指定网关 ID 查询。 | `1483281443578613762` |
-| `searchType` | String | 否 | 查询方式：`ALL`(全量, 默认), `PAGE`(分页)。 | `"ALL"` |
-| `roomId` | Long | 否 | 按房间 ID 过滤。 | `1483281443578613763` |
-| `spk` | String | 否 | 按功能类型过滤（如 `light.dimming`）。 | `"light.dimming"` |
-| `isGetProtocol` | Boolean | 否 | 是否查询设备协议，默认 `false`。 | `true` |
-| `collect` | String | 否 | 是否只查询收藏设备：`"1"`(是), `"0"`(否)。 | `"1"` |
-| `pageSize` | Long | 否 | 每页条数（`searchType=PAGE` 时生效）。 | `10` |
-| `pageNo` | Long | 否 | 当前页码（`searchType=PAGE` 时生效）。 | `1` |
-| `appKey` | String | **是** | (BaseDTO) 取自 `${HDL_APP_KEY}`。 | `${HDL_APP_KEY}` |
-| `timestamp` | Long | **是** | (BaseDTO) 13 位毫秒级时间戳。 | `1774425423000` |
-| `sign` | String | **是** | (BaseDTO) 安全签名。 | `"abc123xyz..."` |
+| `gatewayId` | Long | 否 | 网关 ID 查询。                            | `1483281443578613762` |
+| `searchType` | String | 否 | 查询方式：`ALL`(全量, 默认), `PAGE`(分页)。      | `"ALL"` |
+| `roomId` | Long | 否 | 按房间 ID 过滤。                           | `1483281443578613763` |
+| `spk` | String | 否 | 按功能类型过滤（如 `light.dimming`）。          | `"light.dimming"` |
+| `collect` | String | 否 | 是否只查询收藏设备：`"1"`(是), `"0"`(否)。        | `"1"` |
+| `pageSize` | Long | 否 | 每页条数（`searchType=PAGE` 时生效）。         | `10` |
+| `pageNo` | Long | 否 | 当前页码（`searchType=PAGE` 时生效）。         | `1` |
+| `appKey` | String | **是** | (BaseDTO) 取自 `${HDL_APP_KEY}`。       | `${HDL_APP_KEY}` |
+| `timestamp` | Long | **是** | (BaseDTO) 13 位毫秒级时间戳。                | `1774425423000` |
+| `sign` | String | **是** | (BaseDTO) 安全签名。                      | `"abc123xyz..."` |
 
 ### 2.1.2 请求示例 (JSON)
 ```json
