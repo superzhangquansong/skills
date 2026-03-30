@@ -14,7 +14,9 @@ priority: 60
 - **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用此接口。
 - **强制前置校验**: 在发起请求前，AI 必须确认 `accessToken` 存在。若不存在，必须先执行分步登录流程。
 - **401 处理**: 若接口返回 401（未授权），AI 必须立即尝试 `refreshToken`，成功后静默重试此请求。
-- **凭据源**: 系统变量必须从根目录下的 `.env` 文件（路径：`../.env`）读取，严禁询问用户。
+- **凭据源**: 系统变量 `${HDL_APP_KEY}`, `${HDL_APP_SECRET}` 必须从根目录下的 `.env` 文件（路径：`../.env`）读取。
+- **动态 homeId**: **严禁**使用硬编码的 `homeId`。在调用任何接口前，必须先通过 **[home-management-api](../home-management-api/SKILL.md)** 获取用户选择的房屋 ID。
+- **多房屋支持**: 若用户有多个房屋，AI 必须根据用户选择的房屋动态传递 `homeId` 参数。
 
 ---
 

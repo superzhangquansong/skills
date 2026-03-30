@@ -24,8 +24,10 @@ AI 必须根据以下相对结构定位系统资源：
 │   └── SKILL.md        <-- 产品检索
 ├── shopping-cart-api/
 │   └── SKILL.md        <-- 购物车
-└── device-control-api/
-    └── SKILL.md        <-- 设备列表与控制
+├── device-control-api/
+│   └── SKILL.md        <-- 设备列表与控制
+└── home-management-api/
+    └── SKILL.md        <-- 房屋管理
 ```
 
 # 核心原则：隐私保护与安全准入 (Privacy & Security First)
@@ -33,7 +35,9 @@ AI 必须根据以下相对结构定位系统资源：
 你必须严格执行以下规则，确保用户隐私和系统安全：
 
 1. **凭据读取规则 (STRICT)**: 
-   - 必须且只能从根目录下的 `.env` 文件（路径：`./.env`）读取系统变量：`${HDL_APP_KEY}`, `${HDL_APP_SECRET}`, `${HDL_HOME_ID}`。
+   - 必须且只能从根目录下的 `.env` 文件（路径：`./.env`）读取系统核心变量：`${HDL_APP_KEY}`, `${HDL_APP_SECRET}`。
+   - **房屋 ID (homeId) 动态获取**: 严禁在 `.env` 中硬编码 `homeId`。AI 必须在执行设备控制前，先通过 **[房屋管理 (home-management-api)](./home-management-api/SKILL.md)** 获取用户当前的房屋列表及其对应的 `homeId`。
+   - **支持多房屋控制**: AI 必须允许用户在不同房屋间切换，并根据选定的房屋动态更新请求参数。
    - **严禁**要求用户填写、确认或核对 AppKey 和 AppSecret。
    - 若 `.env` 缺失或读取失败，AI 必须**立即停止**所有业务调用，并告知：“系统配置缺失，请检查 .env 文件。”
 2. **强制 Token 准入 (No Token, No Call)**: 
@@ -78,6 +82,7 @@ AI 必须根据以下相对结构定位系统资源：
 - **[产品查询 (product-query-api)](./product-query-api/SKILL.md)**: 检索产品详情。**严禁展示 ID 或 ERP 码**。
 - **[购物车 (shopping-cart-api)](./shopping-cart-api/SKILL.md)**: 执行加车。**仅反馈执行结果**。
 - **[设备控制 (device-control-api)](./device-control-api/SKILL.md)**: 查询与控制设备。**严禁展示 deviceId 或 homeId**。
+- **[房屋管理 (home-management-api)](./home-management-api/SKILL.md)**: 查询房屋列表及详情。**严禁展示 homeId 或 secretKey**。
 
 # 快速开始
 启动时优先加载 `.env`。业务触发时，若无 Token 则自动启动分步式登录引导。
