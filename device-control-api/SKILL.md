@@ -47,7 +47,6 @@ priority: 60
 {
   "homeId": ${HDL_HOME_ID},
   "searchType": "ALL",
-  "isGetProtocol": true,
   "appKey": "${HDL_APP_KEY}",
   "timestamp": 1774425423000,
   "sign": "abc123xyz..."
