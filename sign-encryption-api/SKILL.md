@@ -51,6 +51,7 @@ priority: 90
 ```json
 {
   "loginName": "19210818109",
+  "loginPwd": "user_password_123", 
   "appKey": "my_app_01",
   "timestamp": 1774425423,
   "roles": ["admin", "user"], 
@@ -59,7 +60,7 @@ priority: 90
 ```
 
 **签名计算流程：**
-1. **参数提取**: `loginName`, `appKey`, `timestamp`, `roles`, `config`
+1. **参数提取**: `loginName`, `loginPwd`, `appKey`, `timestamp`, `roles`, `config`
 2. **过滤排除**: 
    - `roles` (List) -> **不参与签名**
    - `config` (Object) -> **不参与签名**
