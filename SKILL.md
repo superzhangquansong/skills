@@ -10,6 +10,8 @@ tags: [core, hub, skill-management, api]
 permissions: [authenticated]
 ---
 
+> 文档状态 / Doc Status: 已按 2026-04-13 当前源码、脚本与发布链路同步；如与 `target/classes` 构建产物不一致，请以源码目录为准。
+
 # 项目目录结构 (Directory Structure)
 AI 必须根据以下相对结构定位系统资源：
 ```text

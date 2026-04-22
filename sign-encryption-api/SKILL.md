@@ -10,6 +10,8 @@ permissions: [authenticated]
 priority: 90
 ---
 
+> 文档状态 / Doc Status: 已按 2026-04-13 当前源码、脚本与发布链路同步；如与 `target/classes` 构建产物不一致，请以源码目录为准。
+
 # 1. 算法概述
 该签名算法基于 MD5 摘要，通过对请求参数进行字典序排序并拼接密钥（AppSecret）生成。所有涉及安全验证的 HDL API 接口（POST 请求）均需在请求体 JSON 的根节点携带 `sign` 字段。
 

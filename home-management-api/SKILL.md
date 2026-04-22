@@ -10,6 +10,8 @@ permissions: [authenticated]
 priority: 70
 ---
 
+> 文档状态 / Doc Status: 已按 2026-04-13 当前源码、脚本与发布链路同步；如与 `target/classes` 构建产物不一致，请以源码目录为准。
+
 # 1. 强制认证与安全约束
 - **无 Token 不调用 (STRICT)**: 严禁在没有有效 `accessToken` 的情况下调用此接口。
 - **强制前置校验**: 在发起请求前，AI 必须确认 `accessToken` 存在。若不存在，必须先执行分步登录流程。
